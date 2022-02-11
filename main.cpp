@@ -11,12 +11,17 @@ int main() {
             a1[j+i*3]=k++;
         }
     }
-    matrix b(3,3, a);
-    matrix c(3,3,a1);
-    matrix d(3,3);
-    c*=b;
-    c.show_matrix();
-    b.show_matrix();
+    matrix b(3,3);
+    matrix c(3,3);
+    matrix d=b+c;
+    std::cout<<1;
+    std::cout<<d;
+    std::cout<<d(0,0);
+    d(0,0) +=1;
+    std::cout<<d;
+    std::cin>>d;
+    std::cin>>d(0,0);
+    std::cout<<d;
     //d.show_matrix();
     return 0;
 }

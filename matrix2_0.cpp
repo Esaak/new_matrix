@@ -1,25 +1,42 @@
 #include "matrix2_0.h"
-#include<iostream>
-#include<cassert>
-using namespace std;
-matrix:: matrix(unsigned int row, unsigned int column): row(row), column(column){
+matrix:: matrix(unsigned int row, unsigned int column): row(row), column(column), rank(false, 0), det(false, 0){
     assert(column !=0 && row !=0);
     data = new double[row*column];
+    for(unsigned int i=0; i<row; i++){
+        for(unsigned int j=0; j<column; j++){
+            std::cin>>data[j+i*column];
+        }
+    }
 }
-matrix:: matrix(unsigned int row, unsigned int column,const double *mass): matrix::matrix(row, column){
+/*matrix:: matrix(unsigned int row, unsigned int column,const double *mass): matrix::matrix(row, column){
     for(unsigned int i=0; i<row; i++){
         for(unsigned int j=0; j<column; j++){
             data[j+i*column] = mass[j+i*column];
         }
     }
-}
-matrix::matrix(const matrix &matrix): matrix::matrix(matrix.row, matrix.column){
+}*/
+matrix::matrix(const matrix &matrix):row(matrix.row), column(matrix.column){
+    assert(column !=0 && row !=0);
+    data = new double[row*column];
+    if(matrix.rank.first){
+        rank = matrix.rank;
+    }
+    else{
+        rank.second = false;
+    }
+    if(matrix.det.first){
+        det = matrix.det;
+    }
+    else{
+        det.second = false;
+    }
     for (unsigned int i = 0; i < row; i++) {
         for (unsigned int j = 0; j < column; j++) {
             data[j+i*column] =matrix.data[j+i*column];
         }
     }
 }
+
 matrix& matrix::operator= (const matrix& matrix){
     if (this == &matrix) {
         return *this;
@@ -34,8 +51,12 @@ matrix& matrix::operator= (const matrix& matrix){
             this->data[j+i*column] = matrix.data[j+i*column];
         }
     }
-    this->det = matrix.det;
-    this->rank = matrix.rank;
+    if(matrix.det.first){
+        this->det = matrix.det;
+    }
+    if(matrix.rank.first){
+        this->rank = matrix.rank;
+    }
     return *this;
 }
 matrix& matrix::operator*= (const matrix &matrix2) {
@@ -72,65 +93,50 @@ matrix& matrix::operator-= (const matrix &matrix2) {
     return *this;
 }
 matrix matrix::operator+ (matrix const &matrix2){
-    assert(column==matrix2.column && row==matrix2.row);
-    matrix new_matrix(row, column);
-    for(unsigned int i=0; i<row; i++){
-        for(unsigned int j=0; j<column; j++){
-            new_matrix.data[j+i*column] = data[j+i*column]+matrix2.data[j+i*column];
-        }
-    }
-    return new_matrix;
+    matrix new_matrix =*this;
+    return new_matrix+=matrix2;
 }
 
-/*
+
 matrix matrix::operator- (matrix const &matrix2){
-    assert(column==matrix2.column && row==matrix2.row);
-    matrix new_matrix(row, column);
-    for(unsigned int i=0; i<row; i++){
-        for(unsigned int j=0; j<column; j++){
-            new_matrix.data[j+i*column] = data[j+i*column]+matrix2.data[j+i*column];
-        }
-    }
-    return new_matrix;
+    matrix new_matrix = *this;
+    return new_matrix-=matrix2;
 }
-*/
-
-
-matrix operator- (const matrix &matrix1, const matrix &matrix2){
-    double new_data[matrix1.row*matrix1.column];
-    for(unsigned int i=0; i<matrix1.row; i++){
-        for(unsigned int j=0; j<matrix1.column; j++){
-            new_data[j+i*matrix1.column] = matrix1.data[j+i*matrix1.column] - matrix2.data[j+i*matrix1.column];
-        }
-    }
-    return matrix(matrix1.row, matrix1.column, new_data);
-}
-
 matrix matrix::operator* (const matrix &matrix2){
-    assert(column==matrix2.row && row==matrix2.column);
-    matrix new_matrix(row, matrix2.column);
-    for(unsigned int i=0; i<row; i++){
-        for(unsigned int j=0; j<matrix2.column; j++){
-            new_matrix.data[j+i*matrix2.column]=0;
-            for(unsigned int k=0; k<column; k++){
-                new_matrix.data[j+i*matrix2.column]+=data[k+i*column]*matrix2.data[j+k*column];
-            }
-        }
-    }
-    return new_matrix;
+    matrix new_matrix=*this;
+    return new_matrix*=matrix2;
 }
-void matrix::show_matrix() {
-    cout<<fixed;
-    cout.precision(3);
-    cout<<" Your matrix : \n";
-    for(unsigned int i=0; i<row; i++){
-        for(unsigned int j=0; j<column; j++){
-            cout<<data[i*column + j]<<" ";
+std:: ostream& operator<< (std::ostream& os ,const matrix &matrix2) {
+    os<<std::fixed;
+    os.precision(3);
+    os<<" Your matrix : \n";
+    for(unsigned int i=0; i<matrix2.row; i++){
+        for(unsigned int j=0; j<matrix2.column; j++){
+            std::cout<<matrix2.data[i*matrix2.column + j]<<" ";
         }
-        cout<<endl;
+        std::cout<<'\n';
     }
-    cout<<"Matrix determinant = "<< det<<"\n";
-    cout<<"Matrix rank = "<< rank<<"\n";
-    cout<< "Matrix rows = "<< row<<"\n";
-    cout<<"Matrix columns = "<< column<<"\n";
+    if(matrix2.det.first){
+        os<<"Matrix determinant = "<< matrix2.det.second<<"\n";
+    }
+    if(matrix2.rank.first){
+        os<<"Matrix rank = "<< matrix2.rank.second<<"\n";
+    }
+    os<< "Matrix rows = "<< matrix2.row<<"\n";
+    os<<"Matrix columns = "<< matrix2.column<<"\n";
+    return os;
+}
+std:: istream& operator>> (std::istream &is, matrix& matrix2){
+    for(unsigned int i=0; i<matrix2.row; i++){
+        for(unsigned int j=0; j<matrix2.column; j++){
+            std::cin>>matrix2.data[i+j*matrix2.column];
+        }
+    }
+    return is;
+}
+double& matrix:: operator() (unsigned int i, unsigned int j){
+    return data[i+j*column];
+}
+double matrix:: operator() (unsigned int i, unsigned int j) const {
+    return data[i+j*column];
 }
