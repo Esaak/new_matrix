@@ -5,6 +5,7 @@ matrix::~matrix() {
 double matrix:: cin_item(){
     double d;
     std::cin>>d;
+    //std::cin>>d;
     return d;
 }
 matrix:: matrix(unsigned int row, unsigned int column):row(row), column(column) {
@@ -53,7 +54,7 @@ matrix& matrix::operator= (const matrix& matrix){
     this->rank = matrix.rank;
     return *this;
 }
-matrix& matrix::operator*= (const matrix &matrix2) {
+/*matrix& matrix::operator*= (const matrix &matrix2) {
     assert(column==matrix2.row);
     double *new_data = new double [row*matrix2.column];
     for(unsigned int i=0; i<row; i++){
@@ -67,7 +68,23 @@ matrix& matrix::operator*= (const matrix &matrix2) {
     delete [] data;
     data = new_data;
     return *this;
+}*/
+matrix& matrix::operator*= (const matrix &matrix2) {
+    assert(column==matrix2.row);
+    double *new_data = new double [row*matrix2.column]{};
+    for(unsigned int i=0; i<row; i++){
+        for(unsigned int k=0; k<matrix2.column; k++){//сильно не уверен, проверить
+            for(unsigned int j=0; j<column; j++){
+                new_data[j+i*matrix2.column] +=data[k+i*column]*matrix2.data[j+k*column];
+            }
+        }
+    }
+    delete [] data;
+    data = new_data;
+    return *this;
 }
+
+
 matrix& matrix::operator+= (const matrix &matrix2) {
     assert(column==matrix2.column && row==matrix2.row);
     for(unsigned int i=0; i<row; i++){
@@ -101,6 +118,7 @@ matrix matrix::operator* (const matrix &matrix2){
     return new_matrix*=matrix2;
 }
 std:: ostream& operator<< (std::ostream& os ,const matrix &matrix2) {
+    std::streamsize ss = std::cout.precision();
     os<<std::fixed;
     os.precision(3);
     os<<" Your matrix : \n";
@@ -118,6 +136,7 @@ std:: ostream& operator<< (std::ostream& os ,const matrix &matrix2) {
     }
     os<< "Matrix rows = "<< matrix2.row<<"\n";
     os<<"Matrix columns = "<< matrix2.column<<"\n";
+    os.precision(ss);
     return os;
 }
 std:: istream& operator>> (std::istream &is, matrix& matrix2){

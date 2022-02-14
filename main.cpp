@@ -1,5 +1,6 @@
-#include <iostream>
 #include "matrix2_0.h"
+#include<cstdlib>
+#include<ctime>
 int main() {
     double a[9];
     double a1[9];
@@ -11,9 +12,10 @@ int main() {
             a1[j+i*3]=k++;
         }
     }
-    matrix b(3,3);
-    matrix c(3,3);
-    matrix d=b+c;
+    double time_begin = clock();
+    matrix b(1000,1000);
+    matrix c(1000,1000);
+    /*matrix d=b+c;
     std::cout<<1;
     std::cout<<d;
     std::cout<<d(0,0);
@@ -21,7 +23,10 @@ int main() {
     std::cout<<d;
     std::cin>>d;
     std::cin>>d(0,0);
-    std::cout<<d;
+    std::cout<<d;*/
+    b*=c;
+    double time_end = clock();
+    std:: cout<<'\n'<< time_end-time_begin;
     //d.show_matrix();
     return 0;
 }
