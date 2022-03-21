@@ -2,7 +2,7 @@
 #include<cstdlib>
 #include<ctime>
 int main() {
-    double a[9];
+    /*double a[9];
     double a1[9];
     int k=2;
     for(int i=0; i<3;i++){
@@ -12,10 +12,9 @@ int main() {
             a1[j+i*3]=k++;
         }
     }
-    double time_begin = clock();
-    matrix b(1000,1000);
-    matrix c(1000,1000);
-    /*matrix d=b+c;
+    //matrix b(1000,1000);
+    //matrix c(1000,1000);
+    matrix d=b+c;
     std::cout<<1;
     std::cout<<d;
     std::cout<<d(0,0);
@@ -23,10 +22,20 @@ int main() {
     std::cout<<d;
     std::cin>>d;
     std::cin>>d(0,0);
-    std::cout<<d;*/
-    b*=c;
-    double time_end = clock();
-    std:: cout<<'\n'<< time_end-time_begin;
+    std::cout<<d;
+    //b*=c;
+    //std::cout<<b;
+    //b.transponse();
+    //std::cout<<"\n";
+    //std::cout<<b;
+
     //d.show_matrix();
+    matrix mat(3,3);
+    //mat.find_det_and_rank();
+    mat.inverse();
+    std::cout<<mat;*/
+    matrix a(3,4);
+    a.subGauss0();
+    std::cout<<a;
     return 0;
 }
