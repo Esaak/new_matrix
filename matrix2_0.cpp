@@ -385,6 +385,9 @@ void matrix:: transponse(){
         }
     }
     delete [] data;
+    unsigned temp= row;
+    row = column;
+    column = temp;
     data = new_data;
 }
 
@@ -574,5 +577,33 @@ std::pair<matrix, double*> matrix::slau_solution(matrix &b_column) {
         return std::make_pair(FSR, priv_solution);
     }
     //stupid operation end
+}
+double matrix::Kramer_iteration(matrix& b_row, unsigned iteration){
+    double* new_data = new double[column*row];
+    for(unsigned i=0; i<row; i++){
+        for(unsigned j=0; j<column; j++){
+            if(i==iteration) {
+                new_data[i * column + j] = b_row(1, j);
+            }
+            else{
+                new_data[i*column +j] = data[i*column+j];
+            }
+        }
+    }
+    matrix temp(row, column, new_data);
+    return temp.get_det();
+}//потеря памяти 100%
+double* matrix::Kramer(matrix& b_column) {
+    assert(b_column.get_row()==row);
+    transponse();
+    find_det();
+    assert(det.value()!=0);
+    b_column.transponse();
+    double* solution = new double [row];
+    unsigned iteration=0;
+    while(row>=iteration){
+        solution[iteration] = Kramer_iteration(b_column, iteration++)/det.value();
+    }
+    return solution;
 }
 //end of stupid code

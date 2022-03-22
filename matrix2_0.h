@@ -33,6 +33,8 @@ public:
     void find_det ();
     void inverse();
     void subGauss0(bool*);
+    double Kramer_iteration(matrix&b_row,unsigned iteration);
+    double* Kramer(matrix& b_column);
     unsigned int get_rank();
     double get_det();
     unsigned int get_column() const;
