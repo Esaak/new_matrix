@@ -34,8 +34,13 @@ int main() {
     //mat.find_det_and_rank();
     mat.inverse();
     std::cout<<mat;*/
-    matrix a(3,4);
+    /*matrix a(3,4);
     a.subGauss0();
-    std::cout<<a;
+    std::cout<<a;*/
+    matrix a(3,4);
+    matrix b(3,1);
+    std::pair<matrix, double*> wq =a.slau_solution(b) ;
+    std::cout<<wq.first;
+    std::cout<<wq.second;
     return 0;
 }

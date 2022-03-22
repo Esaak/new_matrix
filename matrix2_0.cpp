@@ -1,8 +1,11 @@
 #include "matrix2_0.h"
+
+/************************************************************************************/
+///////////////////////Constructors/distructor||cin_item///////////////////////////
+/************************************************************************************/
 matrix::~matrix() {
     delete [] data;
 }
-
 double matrix:: cin_item(){
     double d;
     std::cin>>d;
@@ -18,11 +21,15 @@ matrix:: matrix(unsigned int row, unsigned int column):row(row), column(column) 
         }
     }
 }
-matrix:: matrix(unsigned int row, unsigned  int column, const double *mass): row(row), column(column){
+matrix:: matrix(unsigned int row, unsigned  int column,  double *mass): row(row), column(column){
     data = new double [row*column];
-    for(unsigned i=0; i<row; i++){
-        for(unsigned j=0; j<column; j++) {
-            data[i * column + j] = mass[i * column + j];
+    data = mass;
+}
+matrix::matrix(unsigned int row, unsigned int column, double element):row(row), column(column) {
+    data = new double [row*column];
+    for(unsigned int i=0; i<row; i++){
+        for(unsigned int j=0; j<column; j++){
+            data[i*column +j] = element;
         }
     }
 }
@@ -44,6 +51,10 @@ matrix::matrix(const matrix &matrix):row(matrix.row), column(matrix.column){
         }
     }
 }
+
+/************************************************************************************/
+/////////////////////////////////Operators////////////////////////////////////////////
+/************************************************************************************/
 
 matrix& matrix::operator= (const matrix& matrix){
     if (this == &matrix) {
@@ -81,18 +92,19 @@ matrix& matrix::operator= (const matrix& matrix){
 matrix& matrix::operator*= (const matrix &matrix2) {
     assert(column==matrix2.row);
     double *new_data = new double [row*matrix2.column]{};
+    //std::cout<<matrix2.column<<" "<<matrix2.row<< " "<< matrix2.data[1]<<'\n';
     for(unsigned int i=0; i<row; i++){
-        for(unsigned int k=0; k<matrix2.column; k++){//сильно не уверен, проверить
-            for(unsigned int j=0; j<column; j++){
-                new_data[j+i*matrix2.column] +=data[k+i*column]*matrix2.data[j+k*column];
+        for(unsigned int j=0; j<matrix2.column; j++){//сильно не уверен, проверить //снова поменял k and j
+            for(unsigned int k=0; k<column; k++){
+                new_data[j+i*matrix2.column] +=data[k+i*column]*matrix2.data[j+k*matrix2.column];
             }
         }
     }
+    column  = matrix2.get_column();
     delete [] data;
     data = new_data;
     return *this;
 }
-
 
 matrix& matrix::operator+= (const matrix &matrix2) {
     assert(column==matrix2.column && row==matrix2.row);
@@ -103,6 +115,7 @@ matrix& matrix::operator+= (const matrix &matrix2) {
     }
     return *this;
 }
+
 matrix& matrix::operator-= (const matrix &matrix2) {
     assert(column==matrix2.column && row==matrix2.row);
     for(unsigned int i=0; i<row; i++){
@@ -112,16 +125,17 @@ matrix& matrix::operator-= (const matrix &matrix2) {
     }
     return *this;
 }
+
 matrix matrix::operator+ (matrix const &matrix2){
     matrix new_matrix =*this;
     return new_matrix+=matrix2;
 }
 
-
 matrix matrix::operator- (matrix const &matrix2){
     matrix new_matrix = *this;
     return new_matrix-=matrix2;
 }
+
 matrix matrix::operator* (const matrix &matrix2){
     matrix new_matrix=*this;
     return new_matrix*=matrix2;
@@ -148,6 +162,7 @@ std:: ostream& operator<< (std::ostream& os ,const matrix &matrix2) {
     os.precision(ss);
     return os;
 }
+
 std:: istream& operator>> (std::istream &is, matrix& matrix2){
     for(unsigned int i=0; i<matrix2.row; i++){
         for(unsigned int j=0; j<matrix2.column; j++){
@@ -156,15 +171,52 @@ std:: istream& operator>> (std::istream &is, matrix& matrix2){
     }
     return is;
 }
+
 double& matrix:: operator() (unsigned int i, unsigned int j){
     return data[j+i*column];
 }
+
 double matrix:: operator() (unsigned int i, unsigned int j) const {
     return data[j+i*column];
 }
-
+/************************************************************************************/
+//////////////////////////////////GET/SET/////////////////////////////////////////////
+/************************************************************************************/
+void matrix:: Set_element(unsigned i, unsigned j,double k){
+    assert(i<=row && j<=column); //не уверен
+    data[i*column+ j] = k;
+}
+unsigned int matrix::get_column() const{
+    return column;
+}
+unsigned int matrix::get_row() {
+    return row;
+}
+unsigned int matrix::get_rank() {
+    if(rank){
+        return rank.value();
+    }
+    else{
+        find_det_and_rank();
+        det.reset();
+        return rank.value();
+    }
+}
+double matrix::get_det() {
+    if(det)
+        return det.value();
+    else{
+        find_det_and_rank();
+        rank.reset();
+        return det.value();
+    }
+}
+/************************************************************************************/
+////////////////////////////////////MATH_METHODS//////////////////////////////////////
+/************************************************************************************/
 double* matrix:: subGauss() {
-    unsigned int rank_temp = column;
+    unsigned int rank_temp = row; //rank_temp = row now
+    unsigned int rank_el = column;
     double *new_data = new double [column*row];
     // stupid operation
     for(unsigned i=0; i<row; i++){
@@ -219,15 +271,16 @@ double* matrix:: subGauss() {
     rank = rank_temp;
     return new_data;
 }
-void matrix::subGauss0() { //for rectangular
+void matrix::subGauss0(bool* basis) { //for rectangular
     unsigned rank_temp = column;
-    bool *basis = new bool[column]{};
+    unsigned int rank_el=1;
     for (unsigned row_counter = 0, row_counter_column=0; row_counter < rank_temp, row_counter_column<rank_temp; row_counter_column++, row_counter++)
     {
 
         if (data[row_counter_column+row_counter*column]!=0)
         {
             basis[row_counter_column] =true;
+            rank_el++;
             for (unsigned column_counter =0; column_counter < row; column_counter++)
             {
                 if(column_counter!= row_counter) {
@@ -277,7 +330,7 @@ void matrix::subGauss0() { //for rectangular
             }
             row_counter--;//row_counter --
         }
-
+        rank = rank_el;
     }
     /*for(unsigned i=0; i<row; i++){
         for(unsigned  j=0; j<column; j++){
@@ -304,7 +357,6 @@ matrix& matrix::Gauss_Seidel(const matrix& b){
     }
     //stupid operation end;
     matrix solution(row, 1);//в конструкторе матриц есть cin_item
-
 
 
 
@@ -363,14 +415,24 @@ void matrix:: find_det_and_rank(){
 }
 //I don't know, but it is code duplication;
 void matrix:: find_rank() {
-    find_det_and_rank();
-    det.reset();
+    if(rank){
+        return;
+    }
+    else{
+        find_det_and_rank();
+        det.reset();
+    }
 }
 
 void matrix::find_det() {
-    find_det_and_rank();
-    rank.reset();
+    if(det){
+        return;
+    } else{
+        find_det_and_rank();
+        rank.reset();
+    }
 }
+
 
 void matrix::find_inverse() {
     double *new_data = new double[column*row]{};
@@ -451,7 +513,7 @@ void matrix::find_inverse() {
     delete [] new_data;
 }
 
-void matrix:: inverse(){
+void matrix::inverse(){
     assert(column==row);
     if(det.has_value() ){
         if(det.value_or(0)){
@@ -473,15 +535,14 @@ void matrix:: inverse(){
     }
 
 }
-matrix& matrix::slau_solution(matrix &b_column) {
-    assert(b_column.column  == row && row<=  column );
+std::pair<matrix, double*> matrix::slau_solution(matrix &b_column) {
+    assert(b_column.get_row()  == row && row <=  column );
     if(row== column) {
         //stupid operation
-        matrix *new_matrix = new matrix(1,1);
-        new_matrix = this;
+        matrix *new_matrix = this;//утечка памяти
         new_matrix->inverse();
-        *new_matrix *=b_column;
-        return *new_matrix;
+        (*new_matrix) *= b_column;
+        return std::make_pair(*new_matrix, nullptr);
     }
     else {
         //stupid operations
@@ -489,25 +550,65 @@ matrix& matrix::slau_solution(matrix &b_column) {
         for (unsigned i = 0; i < row; i++) {
             for (unsigned j = 0; j < column + 1; j++) {
                 if (j == column) {
-                    new_data[i * column + column] = b_column.data[i];
+                    new_data[i * (column+1) + column] = b_column.data[i];
                 } else {
-                    new_data[i * column + j] = data[i * column + j];
+                    new_data[i *( column+1) + j] = data[i *(column) + j];
                 }
             }
         }
         matrix a_big(row, column+1, new_data);//такого конструктора нет и он тупой
-        a_big.subGauss0();
+        bool* basis = new bool[column+1]{};//подумать
+        a_big.subGauss0(basis);//могет быть утечка памяти в сабГаусс0
         //unsigned i=0;
-        matrix FSR(column, column+1-a_big.rank());//нулями заполненная матрица
-        double *priv_solution = new double [column];
+        /*for(int i=0; i<column;i++){
+            std::cout<<basis[i];
+        }*/
+        //std::cout<<a_big;
+        double element =0;
+
+        std::cout<<a_big.rank.value()<<" "<<get_rank();
+        assert(a_big.rank.value()==get_rank());
+        matrix FSR(column, column-a_big.get_rank(),element);//нулями заполненная матрица
+        unsigned FSR_i=0, FSR_j=0;
+        double *priv_solution = new double [column]{};
+        std::cout<<a_big;
         for(unsigned i=0; i < row; i++){
           for(unsigned j=i; j < column+1; j++){// мысль такая, найти все бахисные столбцы в Subgauss.
-
+                if(basis[j]==1 && a_big.data[i*a_big.column+j]==1){
+                    unsigned t=j;
+                    FSR_j=0;
+                    while(t<column) {
+                        while (basis[t] != 0 && t<column) { //дошли до первого не базисного столбца
+                            t++;
+                        }/*
+                        if(t==column){
+                            for(unsigned qw=0; qw<row;qw++){
+                                priv_solution[qw] = a_big(qw, column);
+                            }
+                            break;
+                        }*/
+                        while (basis[t] == 0 && t<a_big.column-1) {
+                            FSR.Set_element(i, FSR_j, -a_big(i, t));
+                            FSR_j++;
+                            t++;
+                        }
+                    }
+                    break;
+                }
           }
         }
-
+        for(unsigned int fsr_1 =0; fsr_1<FSR.column;fsr_1++){
+            unsigned t=0;
+            while(basis[t]){
+                t++;
+            }
+            FSR.Set_element(t, fsr_1,1);
+        }
+        for(unsigned int priv_counter=0; priv_counter<row; priv_counter++) {
+            priv_solution[priv_counter] = a_big(priv_counter, a_big.column-1);
+        }
+        return std::make_pair(FSR, priv_solution);
     }
     //stupid operation end
-
 }
 

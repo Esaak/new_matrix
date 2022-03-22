@@ -12,8 +12,9 @@ class matrix {
 public:
     static double cin_item();
     matrix(unsigned int row, unsigned int column);
-    matrix(unsigned row, unsigned  column,const double *mass);
+    matrix(unsigned row, unsigned  column,double *mass);
     matrix(const matrix& matrix);
+    matrix(unsigned int row, unsigned int j, double element);
     matrix& operator= (const matrix& matrix);
     matrix& operator*= (const matrix &matrix2);
     matrix& operator+= (const matrix& matrix2);
@@ -25,13 +26,18 @@ public:
     double operator() (unsigned int i, unsigned int j) const;
     friend std::ostream& operator<< (std::ostream& os, const matrix& matrix2);
     friend std::istream& operator>> (std::istream &is, matrix& matrix2);
+    void Set_element(unsigned i, unsigned j, double k);
     void transponse();
     void find_det_and_rank();
     void find_rank ();
     void find_det ();
     void inverse();
-    void subGauss0();
-    matrix& slau_solution(matrix &b_column);
+    void subGauss0(bool*);
+    unsigned int get_rank();
+    double get_det();
+    unsigned int get_column() const;
+    unsigned int get_row();
+    std::pair<matrix, double*> slau_solution(matrix &b_column);
     ~matrix();
 private:
     matrix& Gauss_Seidel(const matrix& b);
