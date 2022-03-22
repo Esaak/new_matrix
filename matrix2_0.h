@@ -36,11 +36,11 @@ public:
     unsigned int get_rank();
     double get_det();
     unsigned int get_column() const;
-    unsigned int get_row();
+    unsigned int get_row() const;
     std::pair<matrix, double*> slau_solution(matrix &b_column);
     ~matrix();
 private:
-    matrix& Gauss_Seidel(const matrix& b);
+    //matrix& Gauss_Seidel(const matrix& b);
     void find_inverse();
     double* subGauss();
     unsigned int row;

@@ -9,7 +9,6 @@ matrix::~matrix() {
 double matrix:: cin_item(){
     double d;
     std::cin>>d;
-    //std::cin>>d;
     return d;
 }
 matrix:: matrix(unsigned int row, unsigned int column):row(row), column(column) {
@@ -33,13 +32,7 @@ matrix::matrix(unsigned int row, unsigned int column, double element):row(row), 
         }
     }
 }
-/*matrix:: matrix(unsigned int row, unsigned int column,const double *mass): matrix::matrix(row, column){
-    for(unsigned int i=0; i<row; i++){
-        for(unsigned int j=0; j<column; j++){
-            data[j+i*column] = mass[j+i*column];
-        }
-    }
-}*/
+
 matrix::matrix(const matrix &matrix):row(matrix.row), column(matrix.column){
     assert(column !=0 && row !=0);
     data = new double[row*column];
@@ -189,7 +182,7 @@ void matrix:: Set_element(unsigned i, unsigned j,double k){
 unsigned int matrix::get_column() const{
     return column;
 }
-unsigned int matrix::get_row() {
+unsigned int matrix::get_row() const{
     return row;
 }
 unsigned int matrix::get_rank() {
@@ -215,7 +208,7 @@ double matrix::get_det() {
 ////////////////////////////////////MATH_METHODS//////////////////////////////////////
 /************************************************************************************/
 double* matrix:: subGauss() {
-    unsigned int rank_temp = row; //rank_temp = row now
+    unsigned int rank_temp = column; //rank_temp = row now
     unsigned int rank_el = column;
     double *new_data = new double [column*row];
     // stupid operation
@@ -226,7 +219,12 @@ double* matrix:: subGauss() {
     }
     for (unsigned row_counter = 0; row_counter < rank_temp; row_counter++)
     {
+        //Проверяем на 0 диагональный элемент
         if (new_data[row_counter+row_counter*column]!=0){
+            //элементарные преобразования матрицы
+            //деление строки row_counter на диагональный элемент row_counter
+            //из строк  ниже вычитается row_counter строка умноженная на соотвествующие элементы столбца row_counter
+            //(зануление элементов столбца row_counter ниже строки row_counter)
             for (unsigned column_counter = row_counter+1; column_counter < row; column_counter++)
             {
                 double mult = (double)new_data[column_counter*column+row_counter] /(double)new_data[row_counter*column+ row_counter];
@@ -243,6 +241,7 @@ double* matrix:: subGauss() {
         }
         else
         {
+            //Если диагональный элемент 0,  то находим строку в том же столбце с ненулевыми элементами, и меняем местами строки;
             bool reduce = true;
             for (unsigned i = row_counter + 1; i < row; i++)
             {
@@ -259,6 +258,9 @@ double* matrix:: subGauss() {
                     break ;
                 }
             }
+            //Если не нашли такую строку, ранк уменьшается
+            //Переставляем row_counter нулевой столбец, с крайним правым который может входить в базисный
+            //Смотрим на этот столбец снова
             if (reduce)
             {
                 rank_temp--;
@@ -268,7 +270,8 @@ double* matrix:: subGauss() {
             row_counter--;
         }
     }
-    rank = rank_temp;
+    //могет такое быть что мы насчитали базисных столбцов больше, чем всего строк, провирка
+    rank = (rank_temp<row ? rank_temp : row);
     return new_data;
 }
 void matrix::subGauss0(bool* basis) { //for rectangular
@@ -276,16 +279,18 @@ void matrix::subGauss0(bool* basis) { //for rectangular
     unsigned int rank_el=1;
     for (unsigned row_counter = 0, row_counter_column=0; row_counter < rank_temp, row_counter_column<rank_temp; row_counter_column++, row_counter++)
     {
-
+        //тут будем шагать сначала по диагональным, а потом как пойдет, потому что столбцы переставлять не умеем
         if (data[row_counter_column+row_counter*column]!=0)
         {
+            //тут запоминаем базисные столбцы, говорят полезно
             basis[row_counter_column] =true;
+            // тут считаем ранк, это прикольно
             rank_el++;
+            //тут снова элементарные преобразования матриц, строку делим на ведущий элемент
+            //далее столбец ведущего элемента превращаем в нули, вычитая строки
             for (unsigned column_counter =0; column_counter < row; column_counter++)
             {
                 if(column_counter!= row_counter) {
-                    //double mult = (double)new_data[column_counter*column+row] /
-                    //             new_data[row_counter*column+ row_counter];te
                     double tempa = data[row_counter * column + row_counter_column];
                     double tempb = data[column_counter * column + row_counter_column];
                     for (unsigned i = 0; i < column; i++) {//may be i = 0, i<rank_temp
@@ -295,20 +300,15 @@ void matrix::subGauss0(bool* basis) { //for rectangular
                     }
                 }
             }
-            /*for(unsigned i=0; i<row; i++){
-                for(unsigned  j=0; j<column; j++){
-                    //data[i*column+j] = new_data[i*column+j];
-                    //std::cout<<"1\t";
-                    std::cout<<data[i*column+j]<<' ';
-                }
-                std::cout<<"\n";
-            }*/
+            //дошли до последней строки, остановились, в целом бесполезно, согласен
             if(row_counter == row-1)
                 break;
         }
         else
         {
             bool reduce = true;
+            //ищем в том же столбце ненулевые элементы
+            //нашли, меняем местами
             for (unsigned i = row_counter + 1; i < row; i++)
             {
                 if (data[i*column+row_counter_column]!=0)
@@ -321,6 +321,9 @@ void matrix::subGauss0(bool* basis) { //for rectangular
                         data[i*column+j] = temp1;
                     }
                     reduce = false;
+                    //нужно посмотреть те же диагональные элементы
+                    //если найдем такую строку с ненулевым элементом
+                    row_counter_column--;
                     break ;
                 }
             }
@@ -332,13 +335,6 @@ void matrix::subGauss0(bool* basis) { //for rectangular
         }
         rank = rank_el;
     }
-    /*for(unsigned i=0; i<row; i++){
-        for(unsigned  j=0; j<column; j++){
-            data[i*column+j] = new_data[i*column+j];
-            //std::cout<<"1\t";
-            //std::cout<<data[i*column+j]<<' ';
-        }
-    }*/
 }
 
 /*
@@ -393,7 +389,7 @@ void matrix:: transponse(){
 }
 
 void matrix:: find_det_and_rank(){
-    double *new_data = subGauss();
+    double *new_data = subGauss();//возможно так не стоит делать
     if(column == row){
         if(rank.value() == row) {
             double det_temp = 1;
@@ -405,12 +401,6 @@ void matrix:: find_det_and_rank(){
             det =0;
         }
     }
-    //for(unsigned i=0; i<row; i++){
-      //  for(unsigned j=0; j<column; j++){
-        //    std::cout<<new_data[row*i+j]<<" ";
-        //}
-        //std::cout<<"\n";
-    //}
     delete [] new_data;
 }
 //I don't know, but it is code duplication;
@@ -463,14 +453,6 @@ void matrix::find_inverse() {
                     }
                 }
             }
-            /*for(unsigned i=0; i<row; i++){
-                for(unsigned  j=0; j<column; j++){
-                    //data[i*column+j] = new_data[i*column+j];
-                    //std::cout<<"1\t";
-                    std::cout<<new_data[i*column+j]<<' ';
-                }
-                std::cout<<"\n";
-            }*/
         }
         else
         {
@@ -502,13 +484,6 @@ void matrix::find_inverse() {
 
     }
 
-    /*for(unsigned i=0; i<row; i++){
-        for(unsigned  j=0; j<column; j++){
-            data[i*column+j] = new_data[i*column+j];
-            //std::cout<<"1\t";
-            //std::cout<<data[i*column+j]<<' ';
-        }
-    }*/
     data = new_data;
     delete [] new_data;
 }
@@ -559,11 +534,6 @@ std::pair<matrix, double*> matrix::slau_solution(matrix &b_column) {
         matrix a_big(row, column+1, new_data);//такого конструктора нет и он тупой
         bool* basis = new bool[column+1]{};//подумать
         a_big.subGauss0(basis);//могет быть утечка памяти в сабГаусс0
-        //unsigned i=0;
-        /*for(int i=0; i<column;i++){
-            std::cout<<basis[i];
-        }*/
-        //std::cout<<a_big;
         double element =0;
 
         std::cout<<a_big.rank.value()<<" "<<get_rank();
@@ -580,13 +550,7 @@ std::pair<matrix, double*> matrix::slau_solution(matrix &b_column) {
                     while(t<column) {
                         while (basis[t] != 0 && t<column) { //дошли до первого не базисного столбца
                             t++;
-                        }/*
-                        if(t==column){
-                            for(unsigned qw=0; qw<row;qw++){
-                                priv_solution[qw] = a_big(qw, column);
-                            }
-                            break;
-                        }*/
+                        }
                         while (basis[t] == 0 && t<a_big.column-1) {
                             FSR.Set_element(i, FSR_j, -a_big(i, t));
                             FSR_j++;
@@ -611,4 +575,4 @@ std::pair<matrix, double*> matrix::slau_solution(matrix &b_column) {
     }
     //stupid operation end
 }
-
+//end of stupid code
